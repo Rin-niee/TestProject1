@@ -5,52 +5,60 @@ namespace TestProject1.Helpers
 {
     internal static class BooksHelper
     {
-        public static void AddToFavoritesAndAssert(IWebDriver driver, IWebElement firstProduct, IWebElement titleElement)
+        public static void AddToFavoritesAndAssert(IWebDriver driver, IWebElement firstProduct, string expectedEventId)
         {
-            var bookTitle = titleElement.Text.Trim();
 
             firstProduct
-                .FindElement(By.CssSelector(".icon-fave"))
+                .FindElement(By.CssSelector(".favorite__list-item-link"))
                 .Click();
-            driver.Navigate().Refresh();
-
-            driver.FindElement(By.XPath("//a[.//span[text()='Отложено']]"))
-                .Click();
-
-            var savedFirstItem = driver
-                .FindElements(By.CssSelector(".products-row .product"))[0];
-
-            var savedTitle = savedFirstItem
-                .FindElement(By.CssSelector(".product-title"))
-                .Text
-                .Trim();
-
-            if (savedTitle == bookTitle)
-            {
-                Console.WriteLine("OK: книга успешно добавлена в отложенные");
-            }
-            else
-            {
-                Console.WriteLine($"FAIL: ожидали '{bookTitle}', но нашли '{savedTitle}'");
-            }
+            CheckBookInFavorites(driver, expectedEventId);
         }
         public static void CheckBookInFavorites(
         IWebDriver driver,
-        string expectedTitle)
+        string expectedEventId)
+        {
+            driver.Navigate().Refresh();
+            driver.FindElement(By.CssSelector(".favorite__list-link.header-element")).Click();
+            var items = driver.FindElements(By.CssSelector(".event-list__item"));
+            var found = items.Any(item =>
             {
-                driver.FindElement(
-                    By.XPath("//a[.//span[text()='Отложено']]"))
-                    .Click();
+                var favoriteElement = item.FindElement(
+                    By.CssSelector("[data-event-id]")
+                );
 
-                var savedFirstItem = driver
-                    .FindElements(By.CssSelector(".products-row .product"))[0];
+                return favoriteElement.GetAttribute("data-event-id") == expectedEventId;
+            });
 
-                var savedTitle = savedFirstItem
-                    .FindElement(By.CssSelector(".product-title"))
-                    .Text
-                    .Trim();
-
-                Assert.That(savedTitle, Is.EqualTo(expectedTitle));
+            if (found)
+            {
+                Console.WriteLine("OK: событие найдено в избранном");
             }
+            else
+            {
+                Console.WriteLine($"FAIL: событие с id {expectedEventId} не найдено в избранном");
+            }
+        }
+        public static void CheckBookNotInFavorites(
+        IWebDriver driver,
+        string expectedEventId)
+        {
+            driver.Navigate().Refresh();
+
+            driver.FindElement(
+                By.CssSelector(".favorite__list-link.header-element")
+            ).Click();
+
+            var events = driver.FindElements(
+                By.CssSelector("[data-event-id]")
+            );
+
+            var found = events.Any(x =>
+                x.GetAttribute("data-event-id") == expectedEventId);
+
+            Assert.That(found, Is.False, $"Событие {expectedEventId} всё ещё находится в избранном");
+            TestContext.WriteLine(
+                $"OK: событие {expectedEventId} успешно удалено из избранного"
+            );
+        }
     }
 }

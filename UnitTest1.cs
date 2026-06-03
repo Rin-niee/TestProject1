@@ -1,6 +1,9 @@
 ﻿using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Edge;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Safari;
 using TestProject1.Helpers;
 
 
@@ -10,53 +13,107 @@ namespace TestProject1
     {
         private IWebDriver driver;
 
+        private string browser = "firefox";
+
         [SetUp]
         public void Setup()
         {
-            driver = new ChromeDriver();
+            switch (browser.ToLower())
+            {
+                case "firefox":
+                    driver = new FirefoxDriver();
+                    break;
+
+                case "edge":
+                    driver = new EdgeDriver();
+                    break;
+
+                default:
+                    driver = new ChromeDriver();
+                    break;
+            }
         }
-        //Проверка добавления элемента с главной страницы
+        //Проверка добавления элемента с главной страницы + перезагрузка страницы
         [Test]
         public void AddFirstBookToFavoritesFromIndexPage()
         {
-            driver.Navigate().GoToUrl("https://www.labirint.ru");
-            var firstProduct = driver.FindElements(By.CssSelector(".genres-carousel__item .product"))[0];
-            var bookTitle = firstProduct
-                .FindElement(By.CssSelector(".product-title"));
-                
-            BooksHelper.AddToFavoritesAndAssert(driver, firstProduct, bookTitle);
-        }
-        //Проверка добавления элемента из каталога + сохранение при обновлении
-        [Test]
-        public void AddFirstBookToFavoritesFromCategory()
-        {
-            driver.Navigate().GoToUrl("https://www.labirint.ru");
-            driver.FindElement(By.LinkText("Книги")).Click();
-            var firstProduct = driver.FindElements(By.CssSelector(".products-row-outer .genres-carousel__container .genres-carousel__item"))[0];
-            var bookTitle = firstProduct
-             .FindElement(By.CssSelector(".product-title-link"));
-            BooksHelper.AddToFavoritesAndAssert(driver, firstProduct, bookTitle);
+            driver.Navigate().GoToUrl("https://www.vl.ru/afisha/");
+            var firstProduct = driver.FindElements(By.CssSelector(".popular-in-last-time__main .event-list__item"))[0];
+            var eventId = firstProduct
+                .FindElement(By.CssSelector("[data-event-id]"))
+                .GetAttribute("data-event-id");
+            BooksHelper.AddToFavoritesAndAssert(driver, firstProduct, eventId);
         }
 
-
-        //Проверка добавления элемента с страницы товара в избранное
+        //Проверка добавления элемента с главной страницы + перезагрузка страницы
         [Test]
         public void AddFirstBookToFavoritesFromBookPage()
         {
-            driver.Navigate().GoToUrl("https://www.labirint.ru");
-            var firstProduct = driver.FindElements(By.CssSelector(".genres-carousel__item .product"))[0];
-            var bookTitle = firstProduct
-                .FindElement(By.CssSelector(".product-title"));
-            bookTitle.Click();
-            var favoriteButton = driver.FindElement(
-                By.XPath("//section[contains(@class,'area-price')]//button[@alt='Добавить в избранное']")
-            );
-            var bookTitle_new = driver.FindElement(By.TagName("h1"));
-            var bookTitle_str = bookTitle_new.Text.Trim();
+            driver.Navigate().GoToUrl("https://www.vl.ru/afisha/");
+            var firstProduct = driver.FindElements(By.CssSelector(".popular-in-last-time__main .event-list__item"))[0];
+            firstProduct
+                .FindElement(By.CssSelector(".event-list__item-title")).Click();
+            driver.FindElement(By.CssSelector(".event__favorite-text")).Click();
 
-            favoriteButton.Click();
-            BooksHelper.CheckBookInFavorites(driver, bookTitle_str);
+            var eventId = driver
+                .FindElement(By.CssSelector(".event__favorite-link[data-event-id]"))
+                .GetAttribute("data-event-id");
+            BooksHelper.CheckBookInFavorites(driver, eventId);
         }
+        //добавление и удаления афиши из избранного с проверкой
+        [Test]
+        public void AddRemoveBookFromFavorites()
+        {
+            driver.Navigate().GoToUrl("https://www.vl.ru/afisha/");
+
+            var firstProduct = driver.FindElements(
+                By.CssSelector(".popular-in-last-time__main .event-list__item")
+            )[0];
+
+            var eventId = firstProduct
+                .FindElement(By.CssSelector("[data-event-id]"))
+                .GetAttribute("data-event-id");
+
+            firstProduct
+                .FindElement(By.CssSelector(".favorite__list-item-link"))
+                .Click();
+
+            BooksHelper.CheckBookInFavorites(driver, eventId);
+
+            driver.Navigate().Back();
+
+           firstProduct = driver.FindElements(
+                By.CssSelector(".event-list__items .event-list__item")
+            )[0];
+
+            firstProduct
+                .FindElement(By.CssSelector(".favorite__list-item-link"))
+                .Click();
+
+            BooksHelper.CheckBookNotInFavorites(driver, eventId);
+        }
+
+        //удаление афиши со страницы избранного
+        [Test]
+        public void AddRemoveBookFromFavoritesPages()
+        {
+            driver.Navigate().GoToUrl("https://www.vl.ru/afisha/");
+
+            var firstProduct = driver.FindElements(By.CssSelector(".popular-in-last-time__main .event-list__item"))[0];
+            var eventId = firstProduct
+                .FindElement(By.CssSelector("[data-event-id]"))
+                .GetAttribute("data-event-id");
+            BooksHelper.AddToFavoritesAndAssert(driver, firstProduct, eventId);
+            firstProduct = driver.FindElements(By.CssSelector(".event-list__items .event-list__item"))[0];
+            eventId = firstProduct
+                .FindElement(By.CssSelector("[data-event-id]"))
+                .GetAttribute("data-event-id");
+            firstProduct
+                .FindElement(By.CssSelector(".favorite__list-item-link"))
+                .Click();
+            BooksHelper.CheckBookNotInFavorites(driver, eventId);
+        }
+
 
         [TearDown]
         public void TearDown()
