@@ -9,11 +9,19 @@ using TestProject1.Helpers;
 
 namespace TestProject1
 {
+    [TestFixture("chrome")]
+    [TestFixture("firefox")]
+    [TestFixture("edge")]
+    [TestFixture("safari")]
     public class Tests
     {
         private IWebDriver driver;
+        private readonly string browser;
 
-        private string browser = "firefox";
+        public Tests(string browser)
+        {
+            this.browser = browser;
+        }
 
         [SetUp]
         public void Setup()
@@ -26,6 +34,9 @@ namespace TestProject1
 
                 case "edge":
                     driver = new EdgeDriver();
+                    break;
+                case "safari":
+                    driver = new SafariDriver();
                     break;
 
                 default:
@@ -60,6 +71,7 @@ namespace TestProject1
                 .GetAttribute("data-event-id");
             BooksHelper.CheckBookInFavorites(driver, eventId);
         }
+
         //добавление и удаления афиши из избранного с проверкой
         [Test]
         public void AddRemoveBookFromFavorites()
