@@ -1,102 +1,65 @@
 # TestProject1
 
-Небольшой .NET 10 проект с юнит-тестом(ами) для демонстрации настроек и запуска тестов.
+Автотесты на NUnit + Selenium для сайта [vl.ru/afisha](https://www.vl.ru/afisha/). Поддерживаются браузеры: Chrome, Firefox, Edge, Safari. По умолчанию запускается **Chrome**.
+
+---
 
 ## Требования
 
-- .NET 10 SDK: https://dotnet.microsoft.com/en-us/download/dotnet/10.0
-- Visual Studio 2022/2026 или другой IDE, поддерживающий .NET 10
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- Visual Studio 2022 или новее
 
-## Структура репозитория
+---
 
-- TestProject1/ — проект с тестами
-- TestProject1/UnitTest1.cs — пример теста
-- TestProject1/TestProject1.csproj — файл проекта
+## Открытие проекта
+
+1. Запустите Visual Studio.
+2. `Файл → Открыть → Проект/решение...` → выберите файл `TestProject1.csproj`.
+
+---
 
 ## Установка зависимостей
 
-В этом проекте зависимости восстанавливаются через dotnet CLI или через Visual Studio.
+Проект использует следующие NuGet-пакеты:
 
-Через консоль (PowerShell):
+| Пакет | Назначение |
+|---|---|
+| `Selenium.WebDriver` | Управление браузером |
+| `Selenium.WebDriver.ChromeDriver` | Драйвер Chrome |
+| `DotNetSeleniumExtras.WaitHelpers` | Вспомогательные ожидания |
+| `NUnit` | Фреймворк тестирования |
+| `NUnit3TestAdapter` | Интеграция NUnit с Test Explorer |
+| `NUnit.Analyzers` | Статический анализ тестов |
+| `Microsoft.NET.Test.Sdk` | Платформа запуска тестов |
+| `coverlet.collector` | Сбор покрытия кода |
 
-	cd TestProject1
-	dotnet restore
+**Если пакеты не установлены:**
 
-Или откройте решение в Visual Studio и выполните восстановление NuGet-пакетов.
+1. Перейдите во вкладку **Инструменты → Диспетчер пакетов NuGet → Управление пакетами NuGet для решения...**.
+2. В поле поиска введите название нужного пакета.
+3. Отметьте проект и нажмите **Установить**.
 
-Примечание: можно просто открыть решение в Visual Studio и запустить Build (Сборку) или Restore — Visual Studio автоматически восстановит все пакеты и покажет тесты в Test Explorer.
+---
 
-Пакеты NuGet
+## Запуск тестов через Обозреватель тестов
 
-В проекте обычно указываются ссылки на пакеты в файле `TestProject1.csproj` (PackageReference). Перечисленные вами пакеты часто используются для тестов и автоматизации браузера:
+1. Откройте **Тест → Обозреватель тестов** (или `Ctrl+E, T`).
+2. Соберите проект (`Ctrl+Shift+B`) — тесты появятся и разобьются по браузерам:
+   - `Tests(chrome)` — Chrome (по умолчанию)
+   - `Tests(firefox)` — Firefox
+   - `Tests(edge)` — Edge
+   - `Tests(safari)` — Safari
+3. Нажмите ▶ рядом с нужным браузером, чтобы запустить только его тесты, или **Запустить все** в верхней части панели.
 
-- Selenium.WebDriver
-- Selenium.WebDriver.ChromeDriver
-- NUnit
-- NUnit3TestAdapter
-- Microsoft.NET.Test.Sdk
+> По умолчанию (если браузер не указан) запускается **Chrome**.
 
-Эти пакеты не хранятся в репозитории в виде бинарников (обычно), а перечисляются в csproj и восстанавливаются при `dotnet restore` или при открытии решения в Visual Studio.
+---
 
-Проверить, установлены ли они в проекте:
+## Структура проекта
 
-1. Откройте `TestProject1/TestProject1.csproj` и найдите элементы `<PackageReference Include="..." />`.
-2. Или выполните в консоли внутри папки проекта:
-
-	dotnet list package
-
-Если пакеты отсутствуют, установите их (пример):
-
-	dotnet add package Selenium.WebDriver
-	dotnet add package Selenium.WebDriver.ChromeDriver
-	dotnet add package NUnit
-	dotnet add package NUnit3TestAdapter
-	dotnet add package Microsoft.NET.Test.Sdk
-
-В Visual Studio можно установить/удалить пакеты через NuGet Package Manager (правой кнопкой на проект -> Manage NuGet Packages).
-
-## Запуск автотестов
-
-Через dotnet CLI:
-
-	cd TestProject1
-	dotnet test
-
-Через Visual Studio:
-
-1. Откройте решение.
-2. Откройте Test Explorer (Тестовый обозреватель).
-3. Нажмите "Run All" (Запустить все) или отдельные тесты.
-
-## CI / GitHub Actions (пример)
-
-Ниже пример workflow для запуска тестов на GitHub Actions. Создайте файл `.github/workflows/dotnet.yml`:
-
-```yaml
-name: .NET
-
-on:
-  push:
-	branches: [ main ]
-  pull_request:
-	branches: [ main ]
-
-jobs:
-  build:
-	runs-on: ubuntu-latest
-
-	steps:
-	- uses: actions/checkout@v4
-	- name: Setup .NET
-	  uses: actions/setup-dotnet@v4
-	  with:
-		dotnet-version: '10.0.x'
-	- name: Restore
-	  run: dotnet restore
-	- name: Build
-	  run: dotnet build --no-restore --configuration Release
-	- name: Test
-	  run: dotnet test --no-build --verbosity normal
 ```
-
-Выбор браузера осуществляется, аналогично, через обозреватель тестов путем выбора любого существующего браузера. По умолчанию загрузка осуществляется через Chrome
+TestProject1/
+├── UnitTest1.cs          — тесты (добавление/удаление афиши из избранного)
+├── Helpers/              — вспомогательные методы (BooksHelper)
+└── TestProject1.csproj   — зависимости и настройки проекта
+```
